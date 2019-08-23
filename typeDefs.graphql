@@ -31,6 +31,7 @@ input PostPhotoInput {
     name: String!
     category: PhotoCategory = PORTRAIT
     description: String
+    file: Upload!
 }
 
 type AuthPayload {
@@ -51,7 +52,12 @@ type Query {
 type Mutation {
     postPhoto(input: PostPhotoInput!): Photo!
     tagPhoto(githubLogin:ID! photoID:ID!): Photo!
-    githubAuth(code: String): AuthPayload
+    githubAuth(code: String!): AuthPayload!
     addFakeUsers(count: Int=1): [User!]!
     fakeUserAuth(githubLogin: ID!): AuthPayload!
+}
+
+type Subscription {
+    newPhoto: Photo!
+    newUser: User!
 }

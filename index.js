@@ -1,9 +1,13 @@
 const express = require('express')
-const { ApolloServer } = require('apollo-server-express')
+const { createServer } = require('http')
+const { ApolloServer, PubSub } = require('apollo-server-express')
 const { MongoClient } = require('mongodb')
 const { readFileSync } = require('fs')
 const expressPlayground = require('graphql-playground-middleware-express').default
 const resolvers = require('./resolvers')
+const path = require('path')
+const depthLimit = require('graphql-depth-limit')
+const { createComplexityLimitRule } = require('graphql-validation-complexity')
 
 require('dotenv').config()
 var typeDefs = readFileSync('./typeDefs.graphql', 'UTF-8')
@@ -11,6 +15,7 @@ var typeDefs = readFileSync('./typeDefs.graphql', 'UTF-8')
 async function start() {
   const app = express()
   const MONGO_DB = process.env.DB_HOST
+  const pubsub = new PubSub()
   let db
 
   try {
@@ -26,14 +31,21 @@ async function start() {
     `)
     process.exit(1)
   }
-
+  
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: async ({ req }) => {
-      const githubToken = req.headers.authorization
+    engine: true,
+    validationRules: [
+      depthLimit(5),
+      createComplexityLimitRule(1000, {
+          onCost: cost => console.log('query cost: ', cost)
+      })
+    ],
+    context: async ({ req, connection }) => {
+      const githubToken = req ? req.headers.authorization : connection.context.Authorization
       const currentUser = await db.collection('users').findOne({ githubToken })
-      return { db, currentUser }
+      return { db, currentUser, pubsub }
     }
   })
 
@@ -46,7 +58,17 @@ async function start() {
     res.end(`<a href="${url}">Sign In with Github</a>`)
   })
 
-  app.listen({ port: 4000 }, () =>
+  app.use(
+    '/img/photos', 
+    express.static(path.join(__dirname, 'assets', 'photos'))
+  )
+
+  const httpServer = createServer(app)
+  server.installSubscriptionHandlers(httpServer)
+  console.log('*************', server)
+  httpServer.timeout = 5000
+
+  httpServer.listen({ port: 4000 }, () =>
     console.log(`GraphQL Server running at http://localhost:4000${server.graphqlPath}`)
   )
 }

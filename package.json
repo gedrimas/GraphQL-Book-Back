@@ -1,9 +1,9 @@
 {
   "name": "photo-share-api",
   "version": "0.0.0",
-  "description": "An application for sharing photos",
+  "description": "An app for sharing photos",
   "main": "index.js",
-  "author": "Moon Highway <info@moonhighway.com>",
+  "author": "Moon Highway",
   "license": "MIT",
   "scripts": {
     "start": "nodemon -e js,json,graphql"
@@ -13,8 +13,9 @@
     "dotenv": "6.0.0",
     "express": "4.16.3",
     "graphql": "0.13.2",
+    "graphql-depth-limit": "1.1.0",
     "graphql-playground-middleware-express": "1.7.1",
-    "graphql-playground-react": "^1.7.20",
+    "graphql-validation-complexity": "0.2.3",
     "mongodb": "3.1.0",
     "node-fetch": "2.1.2"
   },
