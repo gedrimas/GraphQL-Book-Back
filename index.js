@@ -64,8 +64,8 @@ async function start() {
   )
 
   const httpServer = createServer(app)
-  server.installSubscriptionHandlers(httpServer)
-  console.log('*************', server)
+  //server.installSubscriptionHandlers(httpServer)
+
   httpServer.timeout = 5000
 
   httpServer.listen({ port: 4000 }, () =>
